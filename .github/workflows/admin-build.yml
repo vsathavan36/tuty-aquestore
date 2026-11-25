@@ -1,0 +1,41 @@
+name: Build admin apps
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'native/**'
+      - '.github/workflows/admin-build.yml'
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+        working-directory: native/admin
+      - run: npx electron-builder --win portable --publish never
+        working-directory: native/admin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Admin
+          path: native/admin/dist/TUTY-AQUEStore-Admin.exe
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - run: gradle assembleDebug
+        working-directory: native/android
+      - run: cp native/android/app/build/outputs/apk/debug/app-debug.apk TUTY-AQUEStore-Admin.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Android-Admin
+          path: TUTY-AQUEStore-Admin.apk
